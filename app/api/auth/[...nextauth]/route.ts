@@ -1,4 +1,4 @@
-import NextAuth, { type NextAuthConfig } from "next-auth";
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
@@ -22,18 +22,11 @@ if (!nextAuthUrl) {
   console.warn("NEXTAUTH_URL is not set. Defaulting to http://localhost:3000");
 }
 
-export const authOptions: NextAuthConfig = {
+export const authOptions = {
   providers: [
     GoogleProvider({
-      clientId: googleClientId || "",
-      clientSecret: googleClientSecret || "",
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code",
-        },
-      },
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
     CredentialsProvider({
       name: "Credentials",
@@ -116,12 +109,11 @@ export const authOptions: NextAuthConfig = {
   session: {
     strategy: "jwt",
   },
-  secret: nextAuthSecret,
+  secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
 };
 
-export const { handlers, auth, signIn, signOut } = NextAuth(authOptions);
+const handler = NextAuth(authOptions);
 
-export const GET = handlers.GET;
-export const POST = handlers.POST;
+export { handler as GET, handler as POST };
 

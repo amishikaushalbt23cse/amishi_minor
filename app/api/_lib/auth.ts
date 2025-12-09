@@ -1,3 +1,5 @@
+export const runtime = "nodejs";  // <-- REQUIRED FIX
+
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
@@ -28,9 +30,7 @@ export function requireAuth(req: NextRequest): AuthContext | NextResponse {
     const userId = decoded.sub || decoded.user_id;
     if (!userId) throw new Error("Invalid token payload");
     return { userId, token };
-  } catch (err) {
+  } catch {
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 }
-
-
