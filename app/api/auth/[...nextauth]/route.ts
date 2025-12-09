@@ -1,3 +1,6 @@
+import type { NextAuthOptions, Session, User, Account, Profile } from "next-auth";
+import type { JWT } from "next-auth/jwt";
+import type { AdapterUser } from "next-auth/adapters";
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
@@ -22,7 +25,7 @@ if (!nextAuthUrl) {
   console.warn("NEXTAUTH_URL is not set. Defaulting to http://localhost:3000");
 }
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -74,14 +77,14 @@ export const authOptions = {
     }),
   ],
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account }: { user: User | AdapterUser; account: Account | null }) {
       if (!user || !account) {
         console.error("Sign in failed: missing user or account");
         return false;
       }
       return true;
     },
-    async jwt({ token, account, user }) {
+    async jwt({ token, account, user }: { token: JWT; account?: Account | null; user?: User | AdapterUser }) {
       // Persist the OAuth access_token and or the user id to the token right after signin
       if (account) {
         token.accessToken = account.access_token;
@@ -91,7 +94,7 @@ export const authOptions = {
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ session, token }: { session: Session; token: JWT }) {
       // Send properties to the client, like an access_token and user id from a provider.
       if (token.accessToken) {
         session.accessToken = token.accessToken as string;
@@ -107,7 +110,7 @@ export const authOptions = {
     error: "/login",
   },
   session: {
-    strategy: "jwt",
+    strategy: "jwt" as const,
   },
   secret: process.env.NEXTAUTH_SECRET,
   debug: process.env.NODE_ENV === "development",
