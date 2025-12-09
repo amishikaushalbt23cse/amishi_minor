@@ -9,6 +9,7 @@ import { GuardianList, type Guardian } from "@/app/components/GuardianList";
 import { Modal } from "@/app/components/Modal";
 import { ToastContainer } from "@/app/components/Toast";
 import { Loader } from "@/app/components/Loader";
+import { WorkflowVisualizer } from "@/app/components/WorkflowVisualizer";
 import type { ToastType } from "@/app/components/Toast";
 import { generateShares } from "@/lib/sss";
 import { encryptShare } from "@/lib/encryption";
@@ -22,6 +23,10 @@ export default function WalletSetupPage() {
   const [newGuardianEmail, setNewGuardianEmail] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  
+  // New state for the visualizer
+  const [showVisualizer, setShowVisualizer] = useState(false);
+
   const [toasts, setToasts] = useState<
     Array<{ id: string; message: string; type: ToastType }>
   >([]);
@@ -85,52 +90,50 @@ export default function WalletSetupPage() {
       return;
     }
 
+    // Trigger the visualizer instead of just loading
     setLoading(true);
+    setShowVisualizer(true);
 
-    try {
-      // Generate shares using SSS (client-side)
-      const shares = generateShares(privateKey, nNum, tNum);
+    // We delay the actual logic slightly so the user sees the start of the animation
+    setTimeout(async () => {
+      try {
+        // Generate shares using SSS (client-side)
+        const shares = generateShares(privateKey, nNum, tNum);
 
-      // Encrypt shares (in production, use proper encryption keys)
-      const encryptionPassword = "default-password"; // TODO: Use proper key management
-      const encryptedShares = shares.map((share, index) => ({
-        share: encryptShare(JSON.stringify(share), encryptionPassword),
-        guardianId: guardians[index].id,
-        guardianEmail: guardians[index].email,
-      }));
+        // Encrypt shares (in production, use proper encryption keys)
+        const encryptionPassword = "default-password"; 
+        const encryptedShares = shares.map((share, index) => ({
+          share: encryptShare(JSON.stringify(share), encryptionPassword),
+          guardianId: guardians[index].id,
+          guardianEmail: guardians[index].email,
+        }));
 
-      // Send to backend
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/wallet/setup', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     encryptedShares,
-      //     n: nNum,
-      //     t: tNum,
-      //     guardians: guardians.map(g => ({ id: g.id, email: g.email })),
-      //   }),
-      // });
+        // Send to backend (Simulated)
+        // await fetch('/api/wallet/setup', ... );
+        
+        // Simulate API call to sync with animation "Processing" phase
+        await new Promise((resolve) => setTimeout(resolve, 2000));
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Update local state
+        setGuardians(
+          guardians.map((g) => ({ ...g, status: "share_sent" as const }))
+        );
+        
+        // Note: We don't redirect immediately here. 
+        // The Visualizer's onComplete prop triggers the redirect.
 
-      addToast("Shares generated and distributed successfully!", "success");
-      
-      // Update guardian statuses
-      setGuardians(
-        guardians.map((g) => ({ ...g, status: "share_sent" as const }))
-      );
+      } catch (error) {
+        addToast("Failed to generate shares. Please try again.", "error");
+        console.error("Error generating shares:", error);
+        setLoading(false);
+        setShowVisualizer(false); // Close visualizer on error
+      }
+    }, 500);
+  };
 
-      setTimeout(() => {
-        router.push("/dashboard");
-      }, 2000);
-    } catch (error) {
-      addToast("Failed to generate shares. Please try again.", "error");
-      console.error("Error generating shares:", error);
-    } finally {
-      setLoading(false);
-    }
+  const onVisualizerComplete = () => {
+    addToast("Shares generated and distributed successfully!", "success");
+    router.push("/dashboard");
   };
 
   const generateRandomKey = () => {
@@ -153,6 +156,21 @@ export default function WalletSetupPage() {
             Enter your key, configure thresholds, and add guardians to distribute shares.
           </p>
         </div>
+
+        {/* VISUALIZER OVERLAY */}
+        {showVisualizer && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="w-full max-w-4xl p-6">
+              <WorkflowVisualizer 
+                mode="split" 
+                n={parseInt(n)} 
+                t={parseInt(t)} 
+                isActive={showVisualizer} 
+                onComplete={onVisualizerComplete}
+              />
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           <Card className="bg-white/85 backdrop-blur border-white/60">
@@ -244,7 +262,7 @@ export default function WalletSetupPage() {
                 {loading ? (
                   <div className="flex items-center gap-2">
                     <Loader size="sm" />
-                    Generating Shares...
+                    Initializing Secure Workflow...
                   </div>
                 ) : (
                   "Generate & Distribute Shares"
@@ -281,4 +299,3 @@ export default function WalletSetupPage() {
     </div>
   );
 }
-
