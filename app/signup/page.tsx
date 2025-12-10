@@ -160,8 +160,6 @@ export default function SignupPage() {
         </div>
       </div>
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </div>
-  );
+    </div>
+  );
 }
-
-

@@ -14,21 +14,26 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body className={inter.className}>
+        
+        {/* ⭐ Static background overlay */}
+        <div className="fixed inset-0 -z-10 bg-gradient-to-br from-purple-100 via-pink-50 to-blue-100" />
+
+
         <Providers>
-          <div className="min-h-screen flex flex-col bg-gray-50">
+          <div className="min-h-screen flex flex-col">
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
         </Providers>
-      </body>
-    </html>
-  );
-}
 
+      </body>
+    </html>
+  );
+}

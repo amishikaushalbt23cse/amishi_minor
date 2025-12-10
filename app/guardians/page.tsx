@@ -8,35 +8,20 @@ import { Modal } from "@/app/components/Modal";
 import { InputField } from "@/app/components/InputField";
 import { ToastContainer } from "@/app/components/Toast";
 import type { ToastType } from "@/app/components/Toast";
+import { motion, Variants } from "framer-motion";
 
 export default function GuardiansPage() {
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newGuardianEmail, setNewGuardianEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [toasts, setToasts] = useState<
-    Array<{ id: string; message: string; type: ToastType }>
-  >([]);
+  const [toasts, setToasts] = useState<Array<{ id: string; message: string; type: ToastType }>>([]);
 
   useEffect(() => {
-    // Load guardians from backend
-    // TODO: Replace with actual API call
-    // fetch('/api/guardians')
-    //   .then(res => res.json())
-    //   .then(data => setGuardians(data));
-
     // Mock data for now
     setGuardians([
-      {
-        id: "1",
-        email: "guardian1@example.com",
-        status: "active",
-      },
-      {
-        id: "2",
-        email: "guardian2@example.com",
-        status: "share_sent",
-      },
+      { id: "1", email: "guardian1@example.com", status: "active" },
+      { id: "2", email: "guardian2@example.com", status: "share_sent" },
     ]);
   }, []);
 
@@ -57,14 +42,6 @@ export default function GuardiansPage() {
 
     setLoading(true);
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/guardians', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email: newGuardianEmail }),
-      // });
-
-      // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 500));
 
       const newGuardian: Guardian = {
@@ -77,7 +54,7 @@ export default function GuardiansPage() {
       setNewGuardianEmail("");
       setIsModalOpen(false);
       addToast("Guardian added successfully", "success");
-    } catch (error) {
+    } catch {
       addToast("Failed to add guardian", "error");
     } finally {
       setLoading(false);
@@ -86,22 +63,35 @@ export default function GuardiansPage() {
 
   const handleDeleteGuardian = async (id: string) => {
     try {
-      // TODO: Replace with actual API call
-      // await fetch(`/api/guardians/${id}`, { method: 'DELETE' });
-
       setGuardians(guardians.filter((g) => g.id !== id));
       addToast("Guardian removed successfully", "success");
-    } catch (error) {
+    } catch {
       addToast("Failed to remove guardian", "error");
     }
   };
 
+  // Framer Motion variants
+  const fadeInUp: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.15, type: "spring", stiffness: 120 },
+    }),
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
-      <div className="mx-auto max-w-5xl px-4 py-10 md:px-6 lg:py-14">
-        <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+    <div className="min-h-screen bg-gradient-to-br from-pink-40 via-pink-100 to-pink-300 relative overflow-hidden">
+       {/* Animated blobs background */}
+       <div className="absolute -z-10">
+        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-pink-300 blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute right-10 top-40 h-64 w-64 rounded-full bg-pink-400 blur-3xl animate-blob animation-delay-4000" />
+        <div className="absolute left-1/3 bottom-20 h-72 w-72 rounded-full bg-pink-500 blur-3xl animate-blob animation-delay-6000" />
+      </div>
+      <div className="mx-auto max-w-5xl px-4 py-10 md:px-6 lg:py-14 space-y-6">
+        <motion.div initial="hidden" animate="visible" custom={0} variants={fadeInUp} className="mb-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="inline-flex rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-indigo-700 shadow-sm backdrop-blur">
+            <p className="inline-flex rounded-full bg-white/70 px-3 py-1 text-xs font-semibold text-pink-700 shadow-sm backdrop-blur">
               Guardian network
             </p>
             <h1 className="mt-3 text-4xl font-bold text-gray-900">Guardians</h1>
@@ -109,26 +99,26 @@ export default function GuardiansPage() {
               Invite, track, and manage the people who keep your shares safe.
             </p>
           </div>
-          <Button onClick={() => setIsModalOpen(true)} className="shadow-lg shadow-indigo-100">
-            Add Guardian
-          </Button>
-        </div>
+          <motion.div custom={1} initial="hidden" animate="visible" variants={fadeInUp}>
+            <Button onClick={() => setIsModalOpen(true)} className="shadow-lg shadow-pink-200">
+              Add Guardian
+            </Button>
+          </motion.div>
+        </motion.div>
 
-        <Card className="bg-white/85 backdrop-blur border-white/60">
-          <CardHeader>
-            <CardTitle>Guardian list</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <GuardianList guardians={guardians} onDelete={handleDeleteGuardian} />
-          </CardContent>
-        </Card>
+        <motion.div custom={2} initial="hidden" animate="visible" variants={fadeInUp}>
+          <Card className="bg-white/85 backdrop-blur border-white/60">
+            <CardHeader>
+              <CardTitle>Guardian list</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <GuardianList guardians={guardians} onDelete={handleDeleteGuardian} />
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Add Guardian"
-      >
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Guardian">
         <div className="space-y-4">
           <InputField
             label="Guardian Email or Phone"
@@ -149,7 +139,6 @@ export default function GuardiansPage() {
       </Modal>
 
       <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </div>
-  );
+    </div>
+  );
 }
-

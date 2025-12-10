@@ -6,6 +6,7 @@ import { Button } from "@/app/components/Button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/Card";
 import { Wallet, Shield, Users, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, Variants } from "framer-motion";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -41,8 +42,27 @@ export default function DashboardPage() {
     },
   ];
 
+  const cardVariants: Variants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: (i: number) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.15, type: "spring", stiffness: 120, damping: 20 },
+    }),
+    hover: { scale: 1.03, boxShadow: "0px 10px 20px rgba(0,0,0,0.12)" },
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
+    <div className="relative min-h-screen bg-gradient-to-br from-pink-20 via-pink-100 to-pink-200 overflow-hidden">
+      {/* Animated blobs background */}
+      <div className="absolute -z-10">
+        <div className="absolute -left-20 top-10 h-72 w-72 rounded-full bg-pink-300 blur-3xl animate-blob animation-delay-2000" />
+        <div className="absolute right-10 top-40 h-64 w-64 rounded-full bg-pink-400 blur-3xl animate-blob animation-delay-4000" />
+        <div className="absolute left-1/3 bottom-20 h-72 w-72 rounded-full bg-pink-500 blur-3xl animate-blob animation-delay-6000" />
+      </div>
+
+
+      
       <div className="mx-auto max-w-6xl px-4 py-10 md:px-6 lg:py-14">
         <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
@@ -72,37 +92,45 @@ export default function DashboardPage() {
           {menuItems.map((item, idx) => {
             const Icon = item.icon;
             return (
-              <Card
+              <motion.div
                 key={item.path}
-                className={cn(
-                  "card-raise bg-white/85 backdrop-blur border-white/60",
-                  idx === 0 && "shadow-lg shadow-indigo-100"
-                )}
+                custom={idx}
+                variants={cardVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                className="rounded-xl"
               >
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-lg bg-indigo-50 p-3">
-                      <Icon className="h-6 w-6 text-indigo-600" />
+                <Card
+                  className={cn(
+                    "bg-white/85 backdrop-blur border-white/60 cursor-pointer",
+                    idx === 0 && "shadow-lg shadow-indigo-100"
+                  )}
+                >
+                  <CardHeader>
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-indigo-50 p-3">
+                        <Icon className="h-6 w-6 text-indigo-600" />
+                      </div>
+                      <CardTitle className="text-lg">{item.title}</CardTitle>
                     </div>
-                    <CardTitle className="text-lg">{item.title}</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-4 text-sm text-gray-600">
-                  <p>{item.description}</p>
-                  <Button
-                    variant={item.variant}
-                    className="w-full"
-                    onClick={() => router.push(item.path)}
-                  >
-                    Go to {item.title}
-                  </Button>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent className="space-y-4 text-sm text-gray-600">
+                    <p>{item.description}</p>
+                    <Button
+                      variant={item.variant}
+                      className="w-full"
+                      onClick={() => router.push(item.path)}
+                    >
+                      Go to {item.title}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
             );
           })}
         </div>
       </div>
-    </div>
-  );
+    </div>
+  );
 }
-
